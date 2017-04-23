@@ -1,3 +1,4 @@
+#include "Timer.h"
 #include "macro.h"
 #include "SButton.h"
 #include "states.h"
@@ -15,6 +16,8 @@
 
 RF24 radio(48,49);
 STATE state = READ_BUTTONS;
+
+COMMAND outgoingCommand;
 
 void setup(void)
 {
@@ -36,21 +39,24 @@ void setup(void)
 	//
 
 	radio.printDetails();
+	
+	outgoingCommand.transactNum = 0;
 
 }
 
 //—оздаем экземпл¤ры кнопочек
 CREATE_BUTTONS
 
-COMMAND outgoingCommand;
 KEEPALIVE receivedKeepalive;
-unsigned long sendTime = millis();
+Timer sendTime(RECEIVE_KEEPALIVES_TIMEOUT);
 bool awaitingKeepAlive = false;
 uint8_t receivedKeepalives = 0;
 bool buttonAwaitingHandling = false;
 bool awaitingStartSignal = false;	// индикатор нажати¤ стартовой кнопки
-unsigned long startTimer = millis();  //таймер, отсчитывающий задержку старта. »де¤ в том, что после нажати¤ старовой кнопки ситема отсчитывает 10 секунд и автоматически переключает светофор.
-unsigned long startButtonBlink = millis();
+Timer startTimer(START_DELAY);  //таймер, отсчитывающий задержку старта. »де¤ в том, что после нажати¤ старовой кнопки ситема отсчитывает 10 секунд и автоматически переключает светофор.
+Timer startButtonBlink(START_RED_BUTTON_LIGHT_BLINK_PERIOD);
+Timer pushCommandTimer (RESEND_TIMEOUT);
+Timer missedKAButtonBlink (START_RED_BUTTON_LIGHT_BLINK_PERIOD);
 
 
 void loop(void)
@@ -73,7 +79,7 @@ void loop(void)
 				case SB_CLICK:
 					if (IS_BIT_SET(outgoingCommand.state[START_ADDR], RED) && awaitingStartSignal == false) {
 						awaitingStartSignal = true;
-						startTimer = millis();
+						startTimer.start();
 					}
 				break;
 				case SB_LONG_CLICK:
@@ -94,10 +100,10 @@ void loop(void)
 		{
 			if (awaitingStartSignal) {
 			
-				if ((millis() - startTimer) < START_DELAY ) {
+				if (!startTimer.elapsed()) {
 					// —обытие срабатывающее каждые 125 мс
-					if( ( millis() - startButtonBlink ) > START_RED_BUTTON_LIGHT_BLINK_PERIOD || millis() < startButtonBlink ){
-						startButtonBlink = millis();
+					if( startButtonBlink.elapsed() ){
+						startButtonBlink.start();
 						// »нвертируем светодиод
 						digitalWrite(START_RED_BUTTON_LIGHT,!(digitalRead(START_RED_BUTTON_LIGHT)));
 					}
@@ -107,14 +113,14 @@ void loop(void)
 					TURNOFF_BUTTON(START_ADDR,RED)
 					CHANGE_BUTTON_STATE(START_ADDR,GREEN)
 					awaitingStartSignal = false;
-					startTimer = millis();
+					startTimer.start();
 				}
 			}
 		}
 		case CHANGE_STATE:
 		{
 			
-			if (buttonAwaitingHandling || ((millis() - sendTime) > RESEND_TIMEOUT)) 
+			if (buttonAwaitingHandling || (pushCommandTimer.elapsed())) 
 			{
 				state = SEND_COMMAND;
 				break;
@@ -122,6 +128,11 @@ void loop(void)
 			
 			if (awaitingKeepAlive) {
 				state = RECIEVE_KEEPALIVE;
+				break;
+			}
+			
+			if (receivedKeepalives != 254 && !awaitingKeepAlive && outgoingCommand.transactNum > 0) {
+				state = HANDLE_MISSED_KEEPALIVES;
 				break;
 			}
 			
@@ -136,7 +147,7 @@ void loop(void)
 			outgoingCommand.transactNum++;
 			radio.write(&outgoingCommand, sizeof(outgoingCommand), true);
 			radio.startListening();
-			sendTime = millis();
+			sendTime.start();
 			awaitingKeepAlive = true;
 			receivedKeepalives = 0;
 			state = RECIEVE_KEEPALIVE;
@@ -145,8 +156,8 @@ void loop(void)
 		
 		case RECIEVE_KEEPALIVE:
 		{
-			if ((millis()-sendTime) > RECEIVE_KEEPALIVES_TIMEOUT) {
-				state = CHANGE_STATE;
+			if (sendTime.elapsed()) {
+				state = HANDLE_ALL_BUTTONS;
 				awaitingKeepAlive = false;
 				break;
 			}
@@ -158,15 +169,38 @@ void loop(void)
 				radio.read(&receivedKeepalive, sizeof(receivedKeepalive) );
 				//printf("received pipe: %d, \"%s\".\n\r", pipe_num, &incomingCommand);
 				if ((receivedKeepalive.transactNum = outgoingCommand.transactNum) && (!(IS_BIT_SET(receivedKeepalives,receivedKeepalive.address)))) {
-					if (receivedKeepalive.state == outgoingCommand.state[receivedKeepalive.address]) state = HANDLE_ALL_BUTTONS;
+					if (receivedKeepalive.state == outgoingCommand.state[receivedKeepalive.address]) {
+						 state = HANDLE_ALL_BUTTONS;
+						 SET_BIT(receivedKeepalives,receivedKeepalive.address);
+					}
 				}
 			}
 			break;	
 		}
 		case HANDLE_ALL_BUTTONS:
 			UPDATE_BUTTON_LIGHTS
+			if (sendTime.elapsed()) {
+				state = HANDLE_MISSED_KEEPALIVES;
+				break;
+			}
 			state = READ_BUTTONS;
 			break;
+			
+		case HANDLE_MISSED_KEEPALIVES:
+		if( missedKAButtonBlink.elapsed() ){ // —обытие срабатывающее каждые 125 мс
+			missedKAButtonBlink.start();
+			for (int i = 1; i<RECEIVER_QTY; i++)
+			{
+				if(!IS_BIT_SET(receivedKeepalives,i)) {
+					// »нвертируем светодиод
+					digitalWrite(i*2,!(digitalRead(i*2)));
+					digitalWrite(i*2+1,!(digitalRead(i*2+1)));
+				}
+			}
+		}
+		state = READ_BUTTONS;
+		break;
+			
 		default: break;
 	}
 

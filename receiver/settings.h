@@ -64,10 +64,8 @@
 						pinMode(DEV_ADDR_PIN3, INPUT_PULLUP); \
 						pinMode(DEV_ADDR_PIN4, INPUT_PULLUP);
 
-//#define ADDR_PIN_STATE(pin_num) (digitalRead(DEV_ADDR_PIN##pin_num)) ; 						
+#define ADDR_PIN_STATE(pinNum) ((digitalRead(DEV_ADDR_PIN##pinNum) == HIGH)?1:0) 						
 
-//#define SET_DEV_ADDRESS for (int i = 0; i < 4; i++) devAddr += ADDR_PIN_STATE(i) << i;
-
-#define SET_DEV_ADDRESS devAddr = (((digitalRead(DEV_ADDR_PIN4))<<4) | ((digitalRead(DEV_ADDR_PIN3))<<3) | ((digitalRead(DEV_ADDR_PIN2))<<2) | ((digitalRead(DEV_ADDR_PIN1))<<1) | (digitalRead(DEV_ADDR_PIN0)));
+#define SET_DEV_ADDRESS devAddr |= (((ADDR_PIN_STATE(4))<<4) | ((ADDR_PIN_STATE(3))<<3) | ((ADDR_PIN_STATE(2))<<2) | ((ADDR_PIN_STATE(1))<<1) | (ADDR_PIN_STATE(0)))
 
 #endif
