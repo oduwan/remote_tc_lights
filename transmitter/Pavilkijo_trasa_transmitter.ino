@@ -1,4 +1,3 @@
-#include "arduino.h"
 #include "macro.h"
 #include "SButton.h"
 #include "states.h"
@@ -14,24 +13,21 @@
 
 // Set up nRF24L01 radio on SPI bus plus pins 8 & 9
 
-
-void setup(void);
-void loop(void);
 RF24 radio(48,49);
 STATE state = READ_BUTTONS;
 
 void setup(void)
 {
 
-	//�������������� ��������
+	//»нициализируем лампочки
 	INIT_BUTTON_LIGHTS
 	delay(20);
 	
-	//�������������� ������
+	//»нициализируем кнопки
 	INIT_BUTTONS
 	delay(20);
 	
-	//�������������� ����������
+	//»нициализируем радиомодем
 	SET_UP_RF
 	delay(20);
 
@@ -43,7 +39,7 @@ void setup(void)
 
 }
 
-//������� ���������� ��������
+//—оздаем экземпл¤ры кнопочек
 CREATE_BUTTONS
 
 COMMAND outgoingCommand;
@@ -52,8 +48,8 @@ unsigned long sendTime = millis();
 bool awaitingKeepAlive = false;
 uint8_t receivedKeepalives = 0;
 bool buttonAwaitingHandling = false;
-bool awaitingStartSignal = false;	// ��������� ������� ��������� ������
-unsigned long startTimer = millis();  //������, ������������� �������� ������. ���� � ���, ��� ����� ������� �������� ������ ������ ����������� 10 ������ � ������������� ����������� ��������.
+bool awaitingStartSignal = false;	// индикатор нажати¤ стартовой кнопки
+unsigned long startTimer = millis();  //таймер, отсчитывающий задержку старта. »де¤ в том, что после нажати¤ старовой кнопки ситема отсчитывает 10 секунд и автоматически переключает светофор.
 unsigned long startButtonBlink = millis();
 
 
@@ -99,10 +95,10 @@ void loop(void)
 			if (awaitingStartSignal) {
 			
 				if ((millis() - startTimer) < START_DELAY ) {
-					// ������� ������������� ������ 125 ��
+					// —обытие срабатывающее каждые 125 мс
 					if( ( millis() - startButtonBlink ) > START_RED_BUTTON_LIGHT_BLINK_PERIOD || millis() < startButtonBlink ){
 						startButtonBlink = millis();
-						// ����������� ���������
+						// »нвертируем светодиод
 						digitalWrite(START_RED_BUTTON_LIGHT,!(digitalRead(START_RED_BUTTON_LIGHT)));
 					}
 				}
@@ -175,4 +171,3 @@ void loop(void)
 	}
 
 }
-

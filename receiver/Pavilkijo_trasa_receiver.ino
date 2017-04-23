@@ -1,4 +1,3 @@
-#include "arduino.h"
 #include <SPI.h>
 #include "nRF24L01.h"
 #include <RF24.h>
@@ -11,13 +10,10 @@
 
 // Set up nRF24L01 radio on SPI bus plus pins 8 & 9
 
-
-void setup(void);
-void loop(void);
 RF24 radio(8,9);
 
 
-// ���������� ����� ���������
+// Ћогический адрес приемника
 uint8_t devAddr = 0;
 
 COMMAND incomingCommand;
@@ -28,19 +24,19 @@ COMMAND incomingCommand;
 void setup(void)
 {
 
-	//�������������� �������������� �����
+	//»нициализируем адресозадающие входы
 	ENABLE_DEV_ADDR
 	delay(20);
 	
-	//��������� ����� ����������
+	//‘ормируем адрес устройства
 	SET_DEV_ADDRESS
 	
-	//�������� ��������� ������ �� ���������� � ����������� �� ������
+	//¬ключаем поддержку цветов на устройстве в зависимости от адреса
 	
 	switch (devAddr) {
-		case 0:				// ��� ����� ������ ����������
+		case 0:				// это адрес пульта управлени¤
 		break;
-		case 1:				// ��� ����� ���������� ���������
+		case 1:				// это адрес стартового светофора
 		ENABLE_TC_COLOR (RED)
 		ENABLE_TC_COLOR (GREEN)
 		break;
@@ -50,7 +46,7 @@ void setup(void)
 		break;
 	}
 	
-	//�������������� ����������
+	//»нициализируем радиомодем
 	SET_UP_RF
 
 	//
@@ -74,7 +70,7 @@ void loop(void)
 	// if there is data ready
 	if ( radio.available(&pipe_num) && pipe_num == 1)
 	{
-		//�������� ������ � ����������� ���������
+		//ќбнул¤ем массив с установками семафорам
 		for (int i = 0; i < RECEIVER_QTY; i++) incomingCommand.state[i] = 0;
 		
 		radio.read(&incomingCommand, sizeof(incomingCommand) );
@@ -99,7 +95,7 @@ void loop(void)
 			break;
 		}
 	}
-	// �������� �������������
+	// ѕередаем подтверждение
 	if (!keepAliveSent && devAddr) {
 		if ((millis()-reciveTime) > (KEEPALIVE_TIMEOUT*devAddr)) {
 				radio.stopListening();
@@ -111,4 +107,3 @@ void loop(void)
 	}
 
 }
-

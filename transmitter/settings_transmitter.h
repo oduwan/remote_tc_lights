@@ -11,13 +11,13 @@
 
 #include "SButton.h"
 
-// Настройки радиомодуля
+// РќР°СЃС‚СЂРѕР№РєРё СЂР°РґРёРѕРјРѕРґСѓР»СЏ
 
-#define RECEIVER_PIPE_ADDR 0xABCDABCDE1LL			//адрес приемной трубы у переключателя-приемника
-#define TRANSMITTER_PIPE_ADDR 0xABCDABCDE2LL		//адрес приемной трубы у пульта управления - передатчика
-#define CHANNEL	10									//номер используемого радиочастотного канала
-#define DATA_RATE RF24_1MBPS						// Указываем скорость передачи данных (RF24_250KBPS, RF24_1MBPS, RF24_2MBPS), RF24_1MBPS - 1Мбит/сек
-#define POWER_GAIN RF24_PA_MAX						// Указываем мощность передатчика (RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBm, RF24_PA_MAX=0dBm)7
+#define RECEIVER_PIPE_ADDR 0xABCDABCDE1LL			//Р°РґСЂРµСЃ РїСЂРёРµРјРЅРѕР№ С‚СЂСѓР±С‹ Сѓ РїРµСЂРµРєР»СЋС‡Р°С‚РµР»СЏ-РїСЂРёРµРјРЅРёРєР°
+#define TRANSMITTER_PIPE_ADDR 0xABCDABCDE2LL		//Р°РґСЂРµСЃ РїСЂРёРµРјРЅРѕР№ С‚СЂСѓР±С‹ Сѓ РїСѓР»СЊС‚Р° СѓРїСЂР°РІР»РµРЅРёСЏ - РїРµСЂРµРґР°С‚С‡РёРєР°
+#define CHANNEL	10									//РЅРѕРјРµСЂ РёСЃРїРѕР»СЊР·СѓРµРјРѕРіРѕ СЂР°РґРёРѕС‡Р°СЃС‚РѕС‚РЅРѕРіРѕ РєР°РЅР°Р»Р°
+#define DATA_RATE RF24_1MBPS						// РЈРєР°Р·С‹РІР°РµРј СЃРєРѕСЂРѕСЃС‚СЊ РїРµСЂРµРґР°С‡Рё РґР°РЅРЅС‹С… (RF24_250KBPS, RF24_1MBPS, RF24_2MBPS), RF24_1MBPS - 1РњР±РёС‚/СЃРµРє
+#define POWER_GAIN RF24_PA_MAX						// РЈРєР°Р·С‹РІР°РµРј РјРѕС‰РЅРѕСЃС‚СЊ РїРµСЂРµРґР°С‚С‡РёРєР° (RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBm, RF24_PA_MAX=0dBm)7
 
 #define SET_UP_RF	radio.begin();\
 radio.setChannel(CHANNEL);\
@@ -30,15 +30,15 @@ radio.openReadingPipe (1, RECEIVER_PIPE_ADDR);\
 radio.startListening  ();
 
 #define RECEIVE_KEEPALIVES_TIMEOUT (30*(RECEIVER_QTY+1))
-#define RESEND_TIMEOUT 5000									//Частота повторной принудительной отправки команды семафорам с момента последней отправки
+#define RESEND_TIMEOUT 5000									//Р§Р°СЃС‚РѕС‚Р° РїРѕРІС‚РѕСЂРЅРѕР№ РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕР№ РѕС‚РїСЂР°РІРєРё РєРѕРјР°РЅРґС‹ СЃРµРјР°С„РѕСЂР°Рј СЃ РјРѕРјРµРЅС‚Р° РїРѕСЃР»РµРґРЅРµР№ РѕС‚РїСЂР°РІРєРё
 
-//Максимальное кол-во приемников
+//РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»-РІРѕ РїСЂРёРµРјРЅРёРєРѕРІ
 #define RECEIVER_QTY 7
 
-//Собственный адрес
+//РЎРѕР±СЃС‚РІРµРЅРЅС‹Р№ Р°РґСЂРµСЃ
 #define DEV_ADDR 0
 
-//Настройки первого канала управления - стартового светофора
+//РќР°СЃС‚СЂРѕР№РєРё РїРµСЂРІРѕРіРѕ РєР°РЅР°Р»Р° СѓРїСЂР°РІР»РµРЅРёСЏ - СЃС‚Р°СЂС‚РѕРІРѕРіРѕ СЃРІРµС‚РѕС„РѕСЂР°
 #define START_ADDR 1
 #define START_RED_BUTTON A2
 #define START_RED_BUTTON_LIGHT 2
@@ -47,7 +47,7 @@ radio.startListening  ();
 #define START_DELAY 9500
 #define START_RED_BUTTON_LIGHT_BLINK_PERIOD 125 //125 ms
 
-//Настройки остальных шести каналов управления
+//РќР°СЃС‚СЂРѕР№РєРё РѕСЃС‚Р°Р»СЊРЅС‹С… С€РµСЃС‚Рё РєР°РЅР°Р»РѕРІ СѓРїСЂР°РІР»РµРЅРёСЏ
 
 #define CHANNEL_2_ADDR 2
 #define CHANNEL_2_RED_BUTTON A4
@@ -85,7 +85,7 @@ radio.startListening  ();
 #define CHANNEL_7_YELLOW_BUTTON A15
 #define CHANNEL_7_YELLOW_BUTTON_LIGHT 15
 
-//спецкнопки - управлять сигналом на всех сигнальных светофорах
+//СЃРїРµС†РєРЅРѕРїРєРё - СѓРїСЂР°РІР»СЏС‚СЊ СЃРёРіРЅР°Р»РѕРј РЅР° РІСЃРµС… СЃРёРіРЅР°Р»СЊРЅС‹С… СЃРІРµС‚РѕС„РѕСЂР°С…
 #define ALL_RED_BUTTON A0
 #define ALL_RED_BUTTON_LIGHT 22
 #define ALL_YELLOW_BUTTON A1
@@ -93,7 +93,7 @@ radio.startListening  ();
 
 
 
-// Коды цветов
+// РљРѕРґС‹ С†РІРµС‚РѕРІ
 #define RED 0
 #define YELLOW 1
 #define GREEN 2
